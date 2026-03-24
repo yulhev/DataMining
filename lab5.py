@@ -164,7 +164,7 @@ for name, model in models.items():
 comparison_table = pd.DataFrame(results)
 
 print("\n Model Comparison ")
-print(comparison_table)
+print(comparison_table.to_string())
 
 for name, model in models.items():
     y_test_pred = model.predict(X_test)
