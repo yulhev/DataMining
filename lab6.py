@@ -51,37 +51,37 @@ print("Sample shape:", X_sample.shape)
 
 inertia = []
 k_range = range(2, 11)
-
-for k in k_range:
-    kmeans = KMeans(n_clusters=k, random_state=42)
-    kmeans.fit(X_scaled)
-    inertia.append(kmeans.inertia_)
-
-plt.plot(k_range, inertia)
-plt.xlabel("Number of clusters (k)")
-plt.ylabel("Inertia")
-plt.title("Elbow Method")
-plt.show()
-
-sil_scores = []
-
-for k in k_range:
-    kmeans = KMeans(n_clusters=k, random_state=42)
-    labels = kmeans.fit_predict(X_scaled)
-    score = silhouette_score(
-        X_scaled,
-        labels,
-        sample_size=8500,
-        random_state=42
-    )
-    sil_scores.append(score)
-    print(f"k={k}, silhouette={score:.4f}")
-
-plt.plot(k_range, sil_scores)
-plt.xlabel("Number of clusters (k)")
-plt.ylabel("Silhouette Score")
-plt.title("Silhouette Method")
-plt.show()
+#
+# for k in k_range:
+#     kmeans = KMeans(n_clusters=k, random_state=42)
+#     kmeans.fit(X_scaled)
+#     inertia.append(kmeans.inertia_)
+#
+# plt.plot(k_range, inertia)
+# plt.xlabel("Number of clusters (k)")
+# plt.ylabel("Inertia")
+# plt.title("Elbow Method")
+# plt.show()
+#
+# sil_scores = []
+#
+# for k in k_range:
+#     kmeans = KMeans(n_clusters=k, random_state=42)
+#     labels = kmeans.fit_predict(X_scaled)
+#     score = silhouette_score(
+#         X_scaled,
+#         labels,
+#         sample_size=8500,
+#         random_state=42
+#     )
+#     sil_scores.append(score)
+#     print(f"k={k}, silhouette={score:.4f}")
+#
+# plt.plot(k_range, sil_scores)
+# plt.xlabel("Number of clusters (k)")
+# plt.ylabel("Silhouette Score")
+# plt.title("Silhouette Method")
+# plt.show()
 
 kmeans = KMeans(n_clusters=4, random_state=42, n_init=10)
 df['cluster'] = kmeans.fit_predict(X_scaled)
@@ -94,13 +94,13 @@ print("Calinski-Harabasz:",
 print("Davies-Bouldin:",
       davies_bouldin_score(X_scaled, df['cluster']))
 
-pca = PCA(n_components=2)
-X_pca = pca.fit_transform(X_scaled)
-plt.scatter(X_pca[:, 0], X_pca[:, 1], c=df['cluster'], cmap='viridis')
-plt.title("KMeans Clusters (k=4)")
-plt.xlabel("PC1")
-plt.ylabel("PC2")
-plt.show()
+# pca = PCA(n_components=2)
+# X_pca = pca.fit_transform(X_scaled)
+# plt.scatter(X_pca[:, 0], X_pca[:, 1], c=df['cluster'], cmap='viridis')
+# plt.title("KMeans Clusters (k=4)")
+# plt.xlabel("PC1")
+# plt.ylabel("PC2")
+# plt.show()
 
 pam = KMedoids(n_clusters=4, random_state=42)
 pam_labels = pam.fit_predict(X_sample)
@@ -112,17 +112,41 @@ print("Calinski-Harabasz:",
 print("Davies-Bouldin:",
       davies_bouldin_score(X_sample, pam_labels))
 
-pam_scores = []
+# pam_scores = []
+# for k in k_range:
+#     pam = KMedoids(n_clusters=k, random_state=42)
+#     labels = pam.fit_predict(X_sample)
+#     score = silhouette_score(X_sample, labels, sample_size=2000, random_state=42)
+#     pam_scores.append(score)
+#     print(f"k={k}, silhouette={score:.4f}")
+#
+# plt.plot(k_range, pam_scores, marker='o')
+# plt.xlabel("Number of clusters (k)")
+# plt.ylabel("Silhouette Score")
+# plt.title("Optimal k for PAM")
+# plt.show()
+
+clara = CLARA(n_clusters=4, random_state=42)
+clara_labels = clara.fit_predict(X_sample)
+print("CLARA:")
+print("Silhouette:",
+      silhouette_score(X_sample, clara_labels, sample_size=2000, random_state=42))
+print("Calinski-Harabasz:",
+      calinski_harabasz_score(X_sample, clara_labels))
+print("Davies-Bouldin:",
+      davies_bouldin_score(X_sample, clara_labels))
+
+clara_scores = []
+
 for k in k_range:
-    pam = KMedoids(n_clusters=k, random_state=42)
-    labels = pam.fit_predict(X_sample)
+    clara = CLARA(n_clusters=k, random_state=42)
+    labels = clara.fit_predict(X_sample)
     score = silhouette_score(X_sample, labels, sample_size=2000, random_state=42)
-    pam_scores.append(score)
+    clara_scores.append(score)
     print(f"k={k}, silhouette={score:.4f}")
 
-plt.plot(k_range, pam_scores, marker='o')
+plt.plot(k_range, clara_scores, marker='o')
 plt.xlabel("Number of clusters (k)")
 plt.ylabel("Silhouette Score")
-plt.title("Optimal k for PAM")
+plt.title("Optimal k for CLARA")
 plt.show()
-
