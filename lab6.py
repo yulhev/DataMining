@@ -150,3 +150,26 @@ plt.xlabel("Number of clusters (k)")
 plt.ylabel("Silhouette Score")
 plt.title("Optimal k for CLARA")
 plt.show()
+
+agg = AgglomerativeClustering(n_clusters=4, linkage='ward')
+agg_labels = agg.fit_predict(X_sample)
+print("Agglomerative:")
+print("Silhouette:",
+      silhouette_score(X_sample, agg_labels, sample_size=2000, random_state=42))
+print("Calinski-Harabasz:",
+      calinski_harabasz_score(X_sample, agg_labels))
+print("Davies-Bouldin:",
+      davies_bouldin_score(X_sample, agg_labels))
+
+agg_scores = []
+for k in k_range:
+    agg = AgglomerativeClustering(n_clusters=k, linkage='ward')
+    labels = agg.fit_predict(X_sample)
+    score = silhouette_score(X_sample, labels, sample_size=2000, random_state=42)
+    agg_scores.append(score)
+    print(f"k={k}, silhouette={score:.4f}")
+plt.plot(k_range, agg_scores, marker='o')
+plt.xlabel("Number of clusters (k)")
+plt.ylabel("Silhouette Score")
+plt.title("Optimal k for Agglomerative")
+plt.show()
