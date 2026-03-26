@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import seaborn as sns
 from sklearn.impute import KNNImputer, SimpleImputer
 from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import KMeans, AgglomerativeClustering, BisectingKMeans, DBSCAN
@@ -131,6 +132,15 @@ df['tempo'] = df['tempo'].replace(0, np.nan)
 
 num_cols = df.select_dtypes(include='number').columns
 df[num_cols] = KNNImputer(n_neighbors=5).fit_transform(df[num_cols])
+
+co_mtx = df.corr(numeric_only=True)
+print(co_mtx)
+plt.figure(figsize=(16, 12))
+sns.heatmap(co_mtx, cmap="YlGnBu")
+plt.xticks(rotation=90, fontsize=8)
+plt.yticks(rotation=0, fontsize=8)
+plt.tight_layout()
+plt.show()
 
 X = df.select_dtypes(include='number')
 X_scaled = StandardScaler().fit_transform(X)
