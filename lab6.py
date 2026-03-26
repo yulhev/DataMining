@@ -116,7 +116,7 @@ print("Davies-Bouldin:",
 # for k in k_range:
 #     pam = KMedoids(n_clusters=k, random_state=42)
 #     labels = pam.fit_predict(X_sample)
-#     score = silhouette_score(X_sample, labels, sample_size=2000, random_state=42)
+#     score = silhouette_score(X_sample, labels, sample_size=5000, random_state=42)
 #     pam_scores.append(score)
 #     print(f"k={k}, silhouette={score:.4f}")
 #
@@ -130,7 +130,7 @@ clara = CLARA(n_clusters=4, random_state=42)
 clara_labels = clara.fit_predict(X_sample)
 print("CLARA:")
 print("Silhouette:",
-      silhouette_score(X_sample, clara_labels, sample_size=2000, random_state=42))
+      silhouette_score(X_sample, clara_labels, sample_size=5000, random_state=42))
 print("Calinski-Harabasz:",
       calinski_harabasz_score(X_sample, clara_labels))
 print("Davies-Bouldin:",
@@ -141,7 +141,7 @@ clara_scores = []
 for k in k_range:
     clara = CLARA(n_clusters=k, random_state=42)
     labels = clara.fit_predict(X_sample)
-    score = silhouette_score(X_sample, labels, sample_size=2000, random_state=42)
+    score = silhouette_score(X_sample, labels, sample_size=5000, random_state=42)
     clara_scores.append(score)
     print(f"k={k}, silhouette={score:.4f}")
 
@@ -155,7 +155,7 @@ agg = AgglomerativeClustering(n_clusters=4, linkage='ward')
 agg_labels = agg.fit_predict(X_sample)
 print("Agglomerative:")
 print("Silhouette:",
-      silhouette_score(X_sample, agg_labels, sample_size=2000, random_state=42))
+      silhouette_score(X_sample, agg_labels, sample_size=5000, random_state=42))
 print("Calinski-Harabasz:",
       calinski_harabasz_score(X_sample, agg_labels))
 print("Davies-Bouldin:",
@@ -165,7 +165,7 @@ agg_scores = []
 for k in k_range:
     agg = AgglomerativeClustering(n_clusters=k, linkage='ward')
     labels = agg.fit_predict(X_sample)
-    score = silhouette_score(X_sample, labels, sample_size=2000, random_state=42)
+    score = silhouette_score(X_sample, labels, sample_size=5000, random_state=42)
     agg_scores.append(score)
     print(f"k={k}, silhouette={score:.4f}")
 plt.plot(k_range, agg_scores, marker='o')
@@ -179,7 +179,7 @@ divisive_labels = divisive.fit_predict(X_sample)
 
 print("Divisive (BisectingKMeans):")
 print("Silhouette:",
-      silhouette_score(X_sample, divisive_labels, sample_size=2000, random_state=42))
+      silhouette_score(X_sample, divisive_labels, sample_size=5000, random_state=42))
 print("Calinski-Harabasz:",
       calinski_harabasz_score(X_sample, divisive_labels))
 print("Davies-Bouldin:",
@@ -190,7 +190,7 @@ div_scores = []
 for k in k_range:
     divisive = BisectingKMeans(n_clusters=k, random_state=42, n_init=10)
     labels = divisive.fit_predict(X_sample)
-    score = silhouette_score(X_sample, labels, sample_size=2000, random_state=42)
+    score = silhouette_score(X_sample, labels, sample_size=5000, random_state=42)
     div_scores.append(score)
     print(f"k={k}, silhouette={score:.4f}")
 
@@ -202,11 +202,10 @@ plt.show()
 
 dbscan = DBSCAN(eps=2.0, min_samples=10)
 dbscan_labels = dbscan.fit_predict(X_sample)
-
 print("\nDBSCAN results:")
+
 n_clusters = len(set(dbscan_labels)) - (1 if -1 in dbscan_labels else 0)
 n_noise = np.sum(dbscan_labels == -1)
-
 print("Number of clusters:", n_clusters)
 print("Noise points:", n_noise)
 
@@ -216,7 +215,7 @@ labels_db = dbscan_labels[mask]
 
 if len(set(labels_db)) > 1:
     print("Silhouette:",
-          silhouette_score(X_db, labels_db, sample_size=min(2000, len(X_db)), random_state=42))
+          silhouette_score(X_db, labels_db, sample_size=min(5000, len(X_db)), random_state=42))
     print("Calinski-Harabasz:",
           calinski_harabasz_score(X_db, labels_db))
     print("Davies-Bouldin:",
@@ -233,26 +232,21 @@ print("\nDBSCAN parameter tuning:")
 for eps in eps_values:
     db = DBSCAN(eps=eps, min_samples=10)
     labels = db.fit_predict(X_sample)
-
     n_clusters = len(set(labels)) - (1 if -1 in labels else 0)
     n_noise = np.sum(labels == -1)
-
     cluster_counts.append(n_clusters)
     noise_counts.append(n_noise)
-
     mask = labels != -1
     labels_no_noise = labels[mask]
-
     if len(set(labels_no_noise)) > 1:
         score = silhouette_score(
             X_sample[mask],
             labels_no_noise,
-            sample_size=min(2000, np.sum(mask)),
+            sample_size=min(5000, np.sum(mask)),
             random_state=42
         )
     else:
         score = np.nan
-
     db_scores.append(score)
     print(f"eps={eps}, clusters={n_clusters}, noise={n_noise}, silhouette={score}")
 
@@ -278,4 +272,66 @@ plt.xlabel("eps")
 plt.ylabel("Number of noise points")
 plt.title("DBSCAN: Noise points vs eps")
 plt.grid(True)
+plt.show()
+
+som = MiniSom(
+    x=2,
+    y=2,
+    input_len=X_sample.shape[1],
+    sigma=1,
+    learning_rate=0.3,
+    random_seed=42
+)
+som.random_weights_init(X_sample)
+som.train_random(X_sample, 5000)
+
+som_labels = []
+for row in X_sample:
+    winner = som.winner(row)
+    label = winner[0] * 2 + winner[1]
+    som_labels.append(label)
+som_labels = np.array(som_labels)
+
+print("SOM results:")
+print("Number of clusters:", len(set(som_labels)))
+print("Silhouette:",
+      silhouette_score(X_sample, som_labels, sample_size=5000, random_state=42))
+print("Calinski-Harabasz:",
+      calinski_harabasz_score(X_sample, som_labels))
+print("Davies-Bouldin:",
+      davies_bouldin_score(X_sample, som_labels))
+
+som_sizes = [2, 3, 4, 5]
+som_scores = []
+som_cluster_counts = []
+for size in som_sizes:
+    som = MiniSom(
+        x=size,
+        y=size,
+        input_len=X_sample.shape[1],
+        sigma=1,
+        learning_rate=0.3,
+        random_seed=42
+    )
+    som.random_weights_init(X_sample)
+    som.train_random(X_sample, 5000)
+    labels = []
+    for row in X_sample:
+        winner = som.winner(row)
+        label = winner[0] * size + winner[1]
+        labels.append(label)
+    labels = np.array(labels)
+    n_clusters = len(set(labels))
+    som_cluster_counts.append(n_clusters)
+    if n_clusters > 1:
+        score = silhouette_score(X_sample, labels, sample_size=5000, random_state=42)
+    else:
+        score = np.nan
+    som_scores.append(score)
+    print(f"size={size}x{size}, clusters={n_clusters}, silhouette={score}")
+
+plt.plot(som_cluster_counts, som_scores, marker='o')
+plt.xlabel("Number of SOM clusters")
+plt.ylabel("Silhouette Score")
+plt.title("SOM Map Size Comparison")
 plt.show()
