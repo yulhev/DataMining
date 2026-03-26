@@ -199,3 +199,83 @@ plt.xlabel("Number of clusters (k)")
 plt.ylabel("Silhouette Score")
 plt.title("Optimal k for Divisive Clustering")
 plt.show()
+
+dbscan = DBSCAN(eps=2.0, min_samples=10)
+dbscan_labels = dbscan.fit_predict(X_sample)
+
+print("\nDBSCAN results:")
+n_clusters = len(set(dbscan_labels)) - (1 if -1 in dbscan_labels else 0)
+n_noise = np.sum(dbscan_labels == -1)
+
+print("Number of clusters:", n_clusters)
+print("Noise points:", n_noise)
+
+mask = dbscan_labels != -1
+X_db = X_sample[mask]
+labels_db = dbscan_labels[mask]
+
+if len(set(labels_db)) > 1:
+    print("Silhouette:",
+          silhouette_score(X_db, labels_db, sample_size=min(2000, len(X_db)), random_state=42))
+    print("Calinski-Harabasz:",
+          calinski_harabasz_score(X_db, labels_db))
+    print("Davies-Bouldin:",
+          davies_bouldin_score(X_db, labels_db))
+else:
+    print("Not enough clusters for evaluation")
+
+eps_values = [0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0]
+db_scores = []
+cluster_counts = []
+noise_counts = []
+
+print("\nDBSCAN parameter tuning:")
+for eps in eps_values:
+    db = DBSCAN(eps=eps, min_samples=10)
+    labels = db.fit_predict(X_sample)
+
+    n_clusters = len(set(labels)) - (1 if -1 in labels else 0)
+    n_noise = np.sum(labels == -1)
+
+    cluster_counts.append(n_clusters)
+    noise_counts.append(n_noise)
+
+    mask = labels != -1
+    labels_no_noise = labels[mask]
+
+    if len(set(labels_no_noise)) > 1:
+        score = silhouette_score(
+            X_sample[mask],
+            labels_no_noise,
+            sample_size=min(2000, np.sum(mask)),
+            random_state=42
+        )
+    else:
+        score = np.nan
+
+    db_scores.append(score)
+    print(f"eps={eps}, clusters={n_clusters}, noise={n_noise}, silhouette={score}")
+
+plt.figure(figsize=(8, 5))
+plt.plot(eps_values, db_scores, marker='o')
+plt.xlabel("eps")
+plt.ylabel("Silhouette Score")
+plt.title("DBSCAN Parameter Tuning")
+plt.grid(True)
+plt.show()
+
+plt.figure(figsize=(8, 5))
+plt.plot(eps_values, cluster_counts, marker='o')
+plt.xlabel("eps")
+plt.ylabel("Number of clusters")
+plt.title("DBSCAN: Clusters vs eps")
+plt.grid(True)
+plt.show()
+
+plt.figure(figsize=(8, 5))
+plt.plot(eps_values, noise_counts, marker='o')
+plt.xlabel("eps")
+plt.ylabel("Number of noise points")
+plt.title("DBSCAN: Noise points vs eps")
+plt.grid(True)
+plt.show()
