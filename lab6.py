@@ -173,3 +173,29 @@ plt.xlabel("Number of clusters (k)")
 plt.ylabel("Silhouette Score")
 plt.title("Optimal k for Agglomerative")
 plt.show()
+
+divisive = BisectingKMeans(n_clusters=4, random_state=42, n_init=10)
+divisive_labels = divisive.fit_predict(X_sample)
+
+print("Divisive (BisectingKMeans):")
+print("Silhouette:",
+      silhouette_score(X_sample, divisive_labels, sample_size=2000, random_state=42))
+print("Calinski-Harabasz:",
+      calinski_harabasz_score(X_sample, divisive_labels))
+print("Davies-Bouldin:",
+      davies_bouldin_score(X_sample, divisive_labels))
+
+div_scores = []
+
+for k in k_range:
+    divisive = BisectingKMeans(n_clusters=k, random_state=42, n_init=10)
+    labels = divisive.fit_predict(X_sample)
+    score = silhouette_score(X_sample, labels, sample_size=2000, random_state=42)
+    div_scores.append(score)
+    print(f"k={k}, silhouette={score:.4f}")
+
+plt.plot(k_range, div_scores, marker='o')
+plt.xlabel("Number of clusters (k)")
+plt.ylabel("Silhouette Score")
+plt.title("Optimal k for Divisive Clustering")
+plt.show()
