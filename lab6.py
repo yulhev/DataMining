@@ -1,11 +1,14 @@
 import pandas as pd
 import numpy as np
+from sklearn.decomposition import PCA
 from sklearn.impute import KNNImputer, SimpleImputer
 from sklearn.preprocessing import StandardScaler
-from sklearn.cluster import KMeans
-from sklearn.metrics import silhouette_score
+from sklearn.cluster import KMeans, AgglomerativeClustering, BisectingKMeans, DBSCAN
+from sklearn.metrics import silhouette_score, calinski_harabasz_score, davies_bouldin_score
 import matplotlib.pyplot as plt
-import seaborn as sns
+from sklearn_extra.cluster import KMedoids, CLARA
+from pyclustering.cluster.clarans import clarans
+from minisom import MiniSom
 
 df = pd.read_csv(r'D:\Homeworks\Data Mining\spotify.csv' )
 
@@ -71,4 +74,21 @@ plt.ylabel("Silhouette Score")
 plt.title("Silhouette Method")
 plt.show()
 
+kmeans = KMeans(n_clusters=4, random_state=42, n_init=10)
+df['cluster'] = kmeans.fit_predict(X_scaled)
+print("Inertia:", kmeans.inertia_)
+print("Silhouette:",
+      silhouette_score(X_scaled, df['cluster'], sample_size=8500, random_state=42))
+print("Calinski-Harabasz:",
+      calinski_harabasz_score(X_scaled, df['cluster']))
+print("Davies-Bouldin:",
+      davies_bouldin_score(X_scaled, df['cluster']))
 
+pca = PCA(n_components=2)
+X_pca = pca.fit_transform(X_scaled)
+
+plt.scatter(X_pca[:, 0], X_pca[:, 1], c=df['cluster'], cmap='viridis')
+plt.title("KMeans Clusters (k=4)")
+plt.xlabel("PC1")
+plt.ylabel("PC2")
+plt.show()
